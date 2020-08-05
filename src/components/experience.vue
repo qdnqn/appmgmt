@@ -31,7 +31,9 @@
                 {{entry.company}}
               </span>
               <span class="d-block custom-span text-muted">
-                <span class="small">{{entry.startDate | moment}}</span> <span class="small">-</span> <span class="small">{{entry.endDate | moment}}</span>
+                <span class="small">{{entry.startDate | moment}}</span> <span class="small">- </span> 
+                <span class="small" v-if="!entry.present">{{entry.endDate | moment}}</span>
+                <span class="small" v-if="entry.present">Present</span>
               </span>
               <span class="d-block custom-span text-muted">
                 <span class="small">{{entry.location}}</span>

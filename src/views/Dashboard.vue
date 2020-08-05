@@ -25,7 +25,7 @@
     </div>
   </nav>
 
-  <main role="main" class="container container-fluid mt-5 mb-5">
+  <main role="main" id="dashboard" class="container container-fluid mt-5 mb-5">
     <div class="row justify-content-md-center">
       <div class="col-md-11 col-12 col-sm-12">
         <div class="row">
@@ -142,8 +142,12 @@ export default {
     education,
     chat
   },
+  created: function() {
+    if(this.applicants.length > 0)
+      this.viewFromRoute();
+  },
   computed: {
-    ...mapState(['userProfile', 'applicants']),
+    ...mapState(['applicants']),
     userIdDyn: function() {
       return {userId: this.activeApplicant}
     },
@@ -196,6 +200,8 @@ export default {
           this.viewApplicant(this.$route.params.id, this.firstname, this.lastname, this.photo)
         else
           this.notFound()
+      } else {
+        this.firstLoad = false
       }
     },
     clearDashboard(){

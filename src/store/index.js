@@ -26,7 +26,11 @@ const store = new Vuex.Store({
     applicantExperience: {},
     applicantEducation: {},
     applicantMessages: {},
-    applicants: []
+    applicants: [],
+    applicant: {},
+    update: {},
+    addExp: {},
+    addEdu: {}
   },
   mutations: {
     setApplicantEducation(state, val) {
@@ -43,6 +47,22 @@ const store = new Vuex.Store({
 
     setApplicants(state, val) {
       state.applicants = val
+    },
+
+    setApplicant(state, val) {
+      state.applicant = val
+    },
+
+    setUpdateCompleted(state, val){
+      state.update = val
+    },
+
+    setAddExp(state, val){
+      state.addExp = val
+    },
+
+    setAddEdu(state, val){
+      state.addEdu = val
     }
   },
   actions: {
@@ -116,53 +136,14 @@ const store = new Vuex.Store({
     })
     },
 
-    async createApplicant() {
-      await fb.applicantsCollection.add({
-        firstname: Vue.faker().name.firstName(),
-        lastname:  Vue.faker().name.lastName(),
-        photo: Vue.faker().image.avatar(),
-        position: Vue.faker().name.jobTitle(),
-        company: Vue.faker().company.companyName(),
-        country: Vue.faker().address.country(),
-        city: Vue.faker().address.city(),
-        address: Vue.faker().address.streetAddress(),
-        createdOn: new Date(),
-      })
-    },
-
-    async createExperience({ state }, uid) {
-      await fb.experienceCollection.add({
-        userId: uid.userId,
-        photo: Vue.faker().image.avatar(),
-        position: Vue.faker().name.jobTitle(),
-        company: Vue.faker().company.companyName(),
-        startDate: Vue.faker().date.between('2000-01-01', '2005-12-31'),
-        endDate: Vue.faker().date.between('2005-12-31', '2020-12-31'),
-        location: Vue.faker().address.city(),
-        present: (Math.random() < 0.5) ? true : false,
-        createdOn: new Date()
-      })
-    },
-
-    async createEducation({ state }, uid) {
-      await fb.educationCollection.add({
-        userId: uid.userId,
-        university: 'University of ' + Vue.faker().address.city(),
-        faculty: 'Department of ' + Vue.faker().name.jobArea(),
-        startDate: Vue.faker().date.between('2000-01-01', '2005-12-31'),
-        endDate: Vue.faker().date.between('2005-12-31', '2020-12-31'),
-        present: (Math.random() < 0.5) ? true : false,
-        createdOn: new Date()
-      })
-    },
-
-    async createMessage({ state }, message) {
-      await fb.messagesCollection.add({
-        senderId: message.senderId,
-        receiverId: message.receiverId,
-        message: Vue.faker().lorem.paragraph(),
-        refByUser: message.refByUser,
-        createdOn: new Date()
+    async fetchApplicant({dispatch}, id) {
+      dispatch('fetchApplicantExperience', id)
+      dispatch('fetchApplicantEducation', id)
+      
+      fb.applicantsCollection.doc(id).onSnapshot(doc => {
+        let applicant = doc.data()
+        applicant.id = doc.id
+        store.commit('setApplicant', applicant)
       })
     },
 
@@ -211,6 +192,91 @@ const store = new Vuex.Store({
             store.commit('setApplicants', applicantsArray)
           });
       }
+    },
+
+    async addApplicantExperience({ state }, exp) {
+      console.log(exp)
+
+      await fb.experienceCollection.add({
+        userId: exp.userId,
+        photo: Vue.faker().image.avatar(),
+        position: exp.position,
+        company: exp.company,
+        startDate: new Date(exp.startDate),
+        endDate: new Date(exp.endDate),
+        location: exp.location,
+        present: exp.present,
+        createdOn: new Date()
+      }).then(function() {
+        store.commit('setAddExp', {message: 'Successfully added experience!', type: "success"})
+      });
+    },
+
+    async updateApplicant({dispatch}, applicant) {
+      console.log(applicant)
+      fb.applicantsCollection.doc(applicant.id).update({
+        "firstname": applicant.firstname,
+        "lastname": applicant.lastname,
+        "country": applicant.country,
+        "city": applicant.city,
+        "company": applicant.company,
+        "position": applicant.position
+      }).then(function() {
+        if(typeof applicant.undo == 'undefined')
+          store.commit('setUpdateCompleted', {message: 'Successfully saved changes!', type: "success"})
+        else
+          store.commit('setUpdateCompleted', {message: 'Save action reversed!', type: "undo"})
+      });
+    },
+
+    async createApplicant() {
+      await fb.applicantsCollection.add({
+        firstname: Vue.faker().name.firstName(),
+        lastname:  Vue.faker().name.lastName(),
+        photo: Vue.faker().image.avatar(),
+        position: Vue.faker().name.jobTitle(),
+        company: Vue.faker().company.companyName(),
+        country: Vue.faker().address.country(),
+        city: Vue.faker().address.city(),
+        address: Vue.faker().address.streetAddress(),
+        createdOn: new Date(),
+      })
+    },
+
+    async createExperience({ state }, uid) {
+      await fb.experienceCollection.add({
+        userId: uid.userId,
+        photo: Vue.faker().image.avatar(),
+        position: Vue.faker().name.jobTitle(),
+        company: Vue.faker().company.companyName(),
+        startDate: Vue.faker().date.between('2000-01-01', '2005-12-31'),
+        endDate: Vue.faker().date.between('2005-12-31', '2020-12-31'),
+        location: Vue.faker().address.city(),
+        present: (Math.random() < 0.5) ? true : false,
+        createdOn: new Date()
+      })
+    },
+
+    async createEducation({ state }, uid) {
+      await fb.educationCollection.add({
+        userId: uid.userId,
+        university: 'University of ' + Vue.faker().address.city(),
+        faculty: 'Department of ' + Vue.faker().name.jobArea(),
+        startDate: Vue.faker().date.between('2000-01-01', '2005-12-31'),
+        endDate: Vue.faker().date.between('2005-12-31', '2020-12-31'),
+        present: (Math.random() < 0.5) ? true : false,
+        createdOn: new Date()
+      })
+    },
+
+    async createMessage({ state }, message) {
+      await fb.messagesCollection.add({
+        senderId: message.senderId,
+        receiverId: message.receiverId,
+        message: Vue.faker().lorem.paragraph(),
+        refByUser: message.refByUser,
+        createdOn: new Date()
+      })
     }
   },
   modules: {

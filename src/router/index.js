@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Dashboard from '../views/Dashboard.vue'
+import Edit from '../views/Edit.vue'
 import { auth } from '../firebase'
 
 Vue.use(VueRouter)
