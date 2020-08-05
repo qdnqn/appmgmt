@@ -38,8 +38,9 @@
                         <span class="d-block custom-span text-muted small">
                           <span class="small">{{applicant.address}}</span>, <span class="small">{{applicant.city}}</span>, <span class="small">{{applicant.country}}</span>
                         </span>
-                        <button class="btn btn-danger btn-sm mt-3" @click="removeApplicantFirst()">Delete applicant</button>
-                        <a class="a-custom btn btn-default btn-sm mt-3" @click="removeApplicant()">I am sure</a>
+                        <button class="btn btn-danger btn-sm mt-3" @click="removeApplicantConfirm()">Delete applicant</button>
+                        <a class="a-custom btn btn-default btn-sm mt-3 ml-5" @click="removeApplicant()" v-if="removeConfirm">I am sure</a>
+                        <a class="a-custom btn btn-default btn-sm mt-3" @click="removeCancel()" v-if="removeConfirm">Cancel deletion</a>
                       </div>
                     </div>
                   </div>
@@ -149,6 +150,11 @@
                             <span class="custom-heading small display-block">
                               Add education <a class="a-custom small" v-b-toggle.collapse-2 variant="primary">(+)</a>
                             </span>
+                            <div v-if="addEdu.type == 'success'">
+                              <div class="alert alert-success p-1 mt-2" role="alert">
+                                <small>{{addEdu.message}}</small>
+                              </div>
+                            </div>
                             <b-collapse id="collapse-2" class="mt-2">
                               <b-card>
                                 <form v-on:submit.prevent="onSubmitEdu">
@@ -211,6 +217,7 @@ export default {
       oldApplicant: {},
       changed: false,
       lock: false,
+      removeConfirm: false,
       edu: {
         university: '',
         faculty: '',
@@ -236,7 +243,7 @@ export default {
     datetime: Datetime
   },
   computed: {
-    ...mapState(['applicant','update','addExp']),
+    ...mapState(['applicant','update','addExp','addEdu']),
     userIdDyn: function() {
       return {userId: this.applicant.id}
     },
@@ -256,7 +263,7 @@ export default {
       this.$store.dispatch('addApplicantExperience', this.exp)
     },
     onSubmitEdu() {
-      this.exp.userId = this.applicant.id
+      this.edu.userId = this.applicant.id
       this.$store.dispatch('addApplicantEducation', this.edu)
     },
     undo() {
@@ -274,6 +281,19 @@ export default {
         this.changed = true
       else
         this.changed = false
+    },
+    removeApplicantConfirm() {
+      if(!this.removeConfirm)
+        this.removeConfirm = true
+    },
+    removeCancel(){
+      this.removeConfirm = false
+    },
+    removeApplicant(){
+      if(this.removeConfirm){
+        this.$store.dispatch('deleteApplicant', this.applicant.id)
+        this.$router.push('/')
+      }
     },
     notFound() {
       this.$router.push('/error')
@@ -329,6 +349,24 @@ export default {
 
         setTimeout(() => { 
           this.$store.state.addExp = {}
+        }, 10000)
+      } 
+    },
+    addEdu: function(){
+      if(this.addEdu.type == "success"){
+        this.edu = {
+          university: '',
+          faculty: '',
+          startDate: '',
+          endDate: '',
+          present: false,
+          userId: ''
+        }
+
+        this.$root.$emit('bv::toggle::collapse', 'collapse-2')
+
+        setTimeout(() => { 
+          this.$store.state.addEdu = {}
         }, 10000)
       } 
     }

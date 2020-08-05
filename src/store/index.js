@@ -90,32 +90,32 @@ const store = new Vuex.Store({
     async fetchApplicantExperience({ commit }, user) {
       console.log(user)
       fb.experienceCollection.where("userId", "==", user).orderBy('createdOn', 'desc').onSnapshot(snapshot => {
-      let experienceArray = []
-      
-      snapshot.forEach(doc => {
-        let experienceEntry = doc.data()
-        experienceEntry.id = doc.id
+        let experienceArray = []
         
-        experienceArray.push(experienceEntry)
-      })
+        snapshot.forEach(doc => {
+          let experienceEntry = doc.data()
+          experienceEntry.id = doc.id
+          
+          experienceArray.push(experienceEntry)
+        })
 
-      store.commit('setApplicantExperience', experienceArray)
-    })
+        store.commit('setApplicantExperience', experienceArray)
+      })
     },
 
     async fetchApplicantEducation({ commit }, user) {
       fb.educationCollection.where("userId", "==", user).orderBy('createdOn', 'desc').onSnapshot(snapshot => {
-      let educationArray = []
-      
-      snapshot.forEach(doc => {
-        let educationEntry = doc.data()
-        educationEntry.id = doc.id
+        let educationArray = []
         
-        educationArray.push(educationEntry)
-      })
+        snapshot.forEach(doc => {
+          let educationEntry = doc.data()
+          educationEntry.id = doc.id
+          
+          educationArray.push(educationEntry)
+        })
 
-      store.commit('setApplicantEducation', educationArray)
-    })
+        store.commit('setApplicantEducation', educationArray)
+      })
     },
 
     async fetchApplicantMessages({ commit }, userId) {
@@ -195,20 +195,32 @@ const store = new Vuex.Store({
     },
 
     async addApplicantExperience({ state }, exp) {
-      console.log(exp)
-
       await fb.experienceCollection.add({
         userId: exp.userId,
         photo: Vue.faker().image.avatar(),
         position: exp.position,
         company: exp.company,
         startDate: new Date(exp.startDate),
-        endDate: new Date(exp.endDate),
+        endDate: exp.present ? new Date() : new Date(exp.endDate),
         location: exp.location,
         present: exp.present,
         createdOn: new Date()
       }).then(function() {
-        store.commit('setAddExp', {message: 'Successfully added experience!', type: "success"})
+        store.commit('setAddExp', {message: 'Successfully added new experience!', type: "success"})
+      });
+    },
+
+    async addApplicantEducation({ state }, edu) {
+      await fb.educationCollection.add({
+        userId: edu.userId,
+        university: edu.university,
+        faculty: edu.faculty,
+        startDate: new Date(edu.startDate),
+        endDate: edu.present ? new Date() : new Date(edu.endDate),
+        present: edu.present,
+        createdOn: new Date()
+      }).then(function() {
+        store.commit('setAddEdu', {message: 'Successfully added new education!', type: "success"})
       });
     },
 
@@ -227,6 +239,28 @@ const store = new Vuex.Store({
         else
           store.commit('setUpdateCompleted', {message: 'Save action reversed!', type: "undo"})
       });
+    },
+
+    async deleteApplicant({ state }, userId) {
+      fb.messagesCollection.where("refByUser", "==", userId).orderBy('createdOn', 'desc').onSnapshot(snapshot => {
+        snapshot.forEach(doc => {
+          fb.messagesCollection.doc(doc.id).delete()
+        })
+      })
+
+      fb.experienceCollection.where("userId", "==", userId).orderBy('createdOn', 'desc').onSnapshot(snapshot => {
+        snapshot.forEach(doc => {
+          fb.experienceCollection.doc(doc.id).delete()
+        })
+      })
+
+      fb.educationCollection.where("userId", "==", userId).orderBy('createdOn', 'desc').onSnapshot(snapshot => {
+        snapshot.forEach(doc => {
+          fb.educationCollection.doc(doc.id).delete()
+        })
+      })
+
+      fb.applicantsCollection.doc(userId).delete()
     },
 
     async createApplicant() {
