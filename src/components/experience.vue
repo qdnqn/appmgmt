@@ -34,6 +34,8 @@
                 <span class="small">{{entry.startDate | moment}}</span> <span class="small">- </span> 
                 <span class="small" v-if="!entry.present">{{entry.endDate | moment}}</span>
                 <span class="small" v-if="entry.present">Present</span>
+                &middot; 
+                <span class="small">{{ dateDiff(entry.startDate, entry.endDate, entry.present) }}</span>
               </span>
               <span class="d-block custom-span text-muted">
                 <span class="small">{{entry.location}}</span>
@@ -64,6 +66,36 @@ export default {
     createExperience(userId) {
       this.$store.dispatch('createExperience', {userId: this.userId})
     },
+    dateDiff(start, end, present){
+      start = moment.unix(start.seconds)
+
+      if(present)
+        end =  moment(new Date())
+      else
+        end = moment.unix(end.seconds)
+
+      let dd = moment.duration(end.diff(start));
+      let ret = ''
+
+      if(dd.years() > 0){
+        if(dd.years() % 10 == 1)
+          ret += dd.years() + ' year '
+        else 
+          ret += dd.years() + ' years '
+      }
+
+      if(dd.months() > 0){
+        if(dd.months() % 10 == 1)
+          ret += dd.months() + ' month '
+        else 
+          ret += dd.months() + ' months '
+      }
+
+      if(dd.months() < 1 && dd.years() < 1)
+        ret = 'less than 1 month'
+
+      return ret
+    }
   },
   filters: {
     moment: function (date) {
