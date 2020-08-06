@@ -12,6 +12,7 @@
     "node": "10"
   },
   "dependencies": {
+    "@grpc/proto-loader": "^0.5.5",
     "algoliasearch": "^4.3.1",
     "basic-auth": "^2.0.1",
     "cors": "^2.8.5",

@@ -7,7 +7,7 @@
         <span class="navbar-toggler-icon"></span>
       </button>
 
-      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+      <div class="collapse navbar-collapse w-100 order-2 dual-collapse2">
         <form class="form-inline my-2 my-lg-0" v-on:submit.prevent>
           <div class="input-group input-group-sm">
             <div class="input-group-prepend">
@@ -21,6 +21,14 @@
             <input v-on:keyup="searchApplicants()" v-model="find" type="text" class="form-control mr-sm-2 no-focus-outline shadow-none custom-input" placeholder="Search" aria-label="search" aria-describedby="basic-addon1">
           </div>
         </form>
+      </div>
+
+      <div class="navbar-collapse collapse order-3 dual-collapse2 text-right">
+        <ul class="navbar-nav mr-auto text-right">
+            <li class="nav-item">
+              <a to="/logout" class="a-custom small" v-on:click.stop="logout()">Logout</a>
+            </li>
+        </ul>
       </div>
     </div>
   </nav>
@@ -71,13 +79,13 @@
                       <div :class="{ 'border-bottom-transparent': activeApplicant == applicant.id, 'pb-3 border-bottom-custom': true}"
                       >
                         <span class="d-block custom-span">
-                          <a :href="'/view/'+applicant.id" class="a-custom small">{{applicant.firstname}}  {{applicant.lastname}}</a>
+                          <router-link :to="'/view/'+applicant.id" class="a-custom small">{{applicant.firstname}}  {{applicant.lastname}}</router-link>
                           <span class="small"> &#183; </span> 
                           <span class="small text-muted"> <small>{{applicant.number | oridinal}}</small></span> 
                           <span class="small"> &#183; </span> 
                           <a to="/edit" class="a-custom small" @click="editMode($event, applicant.id)">Edit applicant</a>
                         </span>
-                        <span class="d-block custom-span">
+                        <span class="d-block custom-span" v-if="applicant.position || applicant.company">
                           <span class="small">{{applicant.position}}</span> <span class="small">at</span> <span class="small">{{applicant.company}}</span>
                         </span>
                         <span class="d-block custom-span text-muted small">
@@ -143,6 +151,14 @@ export default {
     chat
   },
   created: function() {
+    console.log("CREATED: ")
+    console.log(this.loggedOut)
+
+    if(this.loggedOut){
+      this.$store.dispatch('fetchApplicants')
+      this.loggedOut = false
+    }
+
     if(this.applicants.length > 0)
       this.viewFromRoute();
   },
@@ -176,8 +192,15 @@ export default {
         this.photo = photo
 
         this.$store.dispatch('viewApplicant', applicant)
+
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+        
       } else {
         this.activeApplicant = ''
+        this.$router.push('/')
       }
     },
     viewFromRoute(){
@@ -219,6 +242,9 @@ export default {
     },
     notFound() {
       this.$router.push('/error')
+    },
+    logout() {
+      this.$store.dispatch('logout')
     }
   },
   filters: {
@@ -243,6 +269,11 @@ export default {
   },
   beforeCreate: function() {
     document.body.className = 'dashboard';
+  },
+  beforeRouteEnter(to, from, next) {
+    next(vm => {
+      vm.previousRoute = from
+    })
   },
   watch: {
     applicants (newAppl, oldAppl) {

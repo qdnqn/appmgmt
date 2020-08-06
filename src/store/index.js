@@ -23,6 +23,7 @@ fb.applicantsCollection.orderBy('createdOn', 'desc').onSnapshot(snapshot => {
 
 const store = new Vuex.Store({
   state: {
+    admin: {},
     applicantExperience: {},
     applicantEducation: {},
     applicantMessages: {},
@@ -33,6 +34,9 @@ const store = new Vuex.Store({
     addEdu: {}
   },
   mutations: {
+    setAdmin(state, val){
+      state.admin = val
+    },
     setApplicantEducation(state, val) {
       state.applicantEducation = val
     },
@@ -68,7 +72,30 @@ const store = new Vuex.Store({
   actions: {
     async login({ dispatch }, form) {
       const { user } = await fb.auth.signInWithEmailAndPassword(form.email, form.password)
+
+      dispatch('fetchAdmin', user)
+      dispatch('fetchApplicants')
+
       router.push('/').catch(()=>{});
+    },
+
+    async logout({ dispatch }) {
+      await fb.auth.signOut()
+
+      store.commit('setApplicants', {})
+      store.commit('setApplicantEducation', {})
+      store.commit('setApplicantExperience', {})
+      store.commit('setApplicantMessages', {})
+      store.commit('setApplicant', {})
+      store.commit('setApplicants', {})
+
+      router.push('/login')
+    },
+
+
+    async fetchAdmin({ commit }, user) {
+      const admin = await fb.usersCollection.doc(user.uid).get()
+      commit('setAdmin', admin.data())
     },
 
     async fetchApplicants({ commit }) {
@@ -156,7 +183,7 @@ const store = new Vuex.Store({
     },
 
     async findApplicants({dispatch}, query) {
-      var client = algoliasearch("EIYLU23CL1", "60f1ef4e287eb0e80e12a69ab3d83754");
+      var client = algoliasearch("EXLQASWZMZ", "9b1359906139b9b7ba2e76b0dc7f8586");
       var index = client.initIndex('applicants');
 
       let applicantsArray = [], i = 0

@@ -31,7 +31,7 @@
           <div class="container-fluid pt-1">
             <div class="row">
               <div class="col-1 col-sm-1 col-md-1 pl-0" v-if="message.senderId == 0">
-                <img src="../assets/images/dummy.png" alt="" class="avatar-chat rounded-circle">
+                <img :src="admin.photo" alt="" class="avatar-chat rounded-circle">
               </div>
               <div class="col-1 col-sm-1 col-md-1 pl-0" v-if="message.senderId != 0">
                 <img :src="photo" alt="" class="avatar-chat rounded-circle">
@@ -42,7 +42,7 @@
                     {{firstname}} {{ lastname }} &middot; {{ message.createdOn | momentHour }}
                   </span>
                   <span class="d-block custom-span small bold-custom" v-if="message.senderId != userId">
-                    Admin &middot; {{ message.createdOn | momentHour }}
+                    {{admin.firstname}} {{admin.lastname}} &middot; {{ message.createdOn | momentHour }}
                   </span>
                   <span class="d-block custom-span small">
                     {{ message.message }} 
@@ -69,7 +69,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['applicantMessages']),
+    ...mapState(['applicantMessages','admin']),
     applicantMessagesComputed: function(){
       let group = {};
       let i;

@@ -39,7 +39,10 @@ Vue.use(VueRouter)
   {
     path: '/login',
     name: 'Login',
-    component: () => import('../views/Login.vue')
+    component: () => import('../views/Login.vue'),
+    meta: {
+      onlyGuest: true
+    }
   },
 ]
 
@@ -52,9 +55,12 @@ const router = new VueRouter({
 // navigation guard to check for logged in users
 router.beforeEach((to, from, next) => {
   const onlyAuthenticated = to.matched.some(x => x.meta.onlyAuthenticated)
+  const onlyGuest = to.matched.some(x => x.meta.onlyGuest)
 
   if (onlyAuthenticated && !auth.currentUser) {
     next('/login')
+  } else if(onlyGuest && auth.currentUser) {
+    next('/')
   } else {
     next()
   }
